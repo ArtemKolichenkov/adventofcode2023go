@@ -18,6 +18,7 @@ func main() {
 
 type Card struct {
 	cardNumber     int
+	quantity       int
 	winningNumbers []string
 	myNumbers      []string
 	winCount       int
@@ -30,24 +31,20 @@ func Solve(filePath string) int {
 	}
 
 	rawStrings := strings.Split(string(file), "\n")
-	originalCards := make([]Card, len(rawStrings))
+	cardsLength := len(rawStrings)
+	originalCards := make([]Card, cardsLength)
 	for i, cardString := range rawStrings {
 		originalCards[i] = *scratchCard(parseCardString(cardString))
 	}
-	// You can also use copy() here, but it's a little bit slower than append
-	cardsQueue := make([]Card, 0, len(rawStrings))
-	cardsQueue = append(cardsQueue, originalCards...)
 	totalCards := 0
 
-	for len(cardsQueue) > 0 {
-		totalCards += 1
-		for i := 0; i < cardsQueue[0].winCount; i++ {
-			if cardsQueue[0].cardNumber+i <= len(originalCards) {
-				cardsQueue = append(cardsQueue, originalCards[cardsQueue[0].cardNumber+i])
+	for _, card := range originalCards {
+		for i := 0; i < card.winCount; i++ {
+			if card.cardNumber+i <= cardsLength {
+				originalCards[card.cardNumber+i].quantity += card.quantity
 			}
 		}
-		cardsQueue = cardsQueue[1:]
-
+		totalCards += card.quantity
 	}
 	return totalCards
 }
@@ -72,7 +69,7 @@ func parseCardString(cardString string) *Card {
 	myNumbersRaw := strings.Split(strings.TrimSpace(strings.Split(strings.Split(cardString, ":")[1], "|")[1]), " ")
 	winningNumbers := filterNonNumbers(winningNumbersRaw)
 	myNumbers := filterNonNumbers(myNumbersRaw)
-	return &Card{cardNumber, winningNumbers, myNumbers, 0}
+	return &Card{cardNumber, 1, winningNumbers, myNumbers, 0}
 }
 
 func filterNonNumbers(s []string) []string {
